@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Wubinworks. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\Filter\Template">
+        <plugin name="wubinworks_templatefilterpatch_plugin_framework_filter_template" type="Wubinworks\TemplateFilterPatch\Plugin\Framework\Filter\Template" />
+    </type>
+    <virtualType name="Wubinworks\TemplateFilterPatch\Model\Logger\Handler\Debug" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">var/log/wubinworks_template_filter.log</argument>
+         </arguments>
+    </virtualType>
+    <virtualType name="Wubinworks\TemplateFilterPatch\Model\Logger\Debug" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">wubinworks_template_filter</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Wubinworks\TemplateFilterPatch\Model\Logger\Handler\Debug</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Wubinworks\TemplateFilterPatch\Model\TemplateFilterEscaper" type="Wubinworks\TemplateFilterPatch\Model\Escaper">
+        <arguments>
+            <argument name="search" xsi:type="string"><![CDATA[{{]]></argument>
+        </arguments>
+    </virtualType>
+    <type name="Wubinworks\TemplateFilterPatch\Plugin\Framework\Filter\Template">
+        <arguments>
+            <argument name="templateFilterEscaper" xsi:type="object">Wubinworks\TemplateFilterPatch\Model\TemplateFilterEscaper</argument>
+            <argument name="logger" xsi:type="object">Wubinworks\TemplateFilterPatch\Model\Logger\Debug</argument>
+        </arguments>
+    </type>
+</config>
