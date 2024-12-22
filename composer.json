@@ -1,8 +1,9 @@
 {
     "name": "wubinworks/module-template-filter-patch",
-    "description": "Magento 2 patch for CVE-2022-24086. Fix the RCE vulnerability and related bugs by performing deep template variable escaping. If you cannot upgrade Magento or cannot apply the official patches, try this one.",
+    "description": "Magento 2 patch for CVE-2022-24086, CVE-2022-24087. Fix the RCE vulnerability and related bugs by performing deep template variable escaping. If you cannot upgrade Magento or cannot apply the official patches, try this one.",
     "keywords": [
         "cve-2022-24086",
+        "cve-2022-24087",
         "rce",
         "magento 2",
         "email template",
@@ -15,12 +16,17 @@
         "deep escape",
         "legacyresolver"
     ],
+    "homepage": "https://www.wubinworks.com",
+    "support": {
+        "issues": "https://github.com/wubinworks/magento2-template-filter-patch/issues",
+        "chat": "https://www.wubinworks.com/contact"
+    },
     "require": {
         "php": ">=7.3",
         "magento/magento2-base": "~2.4.0"
     },
     "type": "magento2-module",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": "OSL-3.0",
     "authors": [
         {
