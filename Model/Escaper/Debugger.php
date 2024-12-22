@@ -28,8 +28,11 @@ class Debugger
             return $this->debugArray($input);
         } elseif (is_object($input)) {
             return $this->debugObject($input);
-        } else {
+        } elseif (is_scalar($input) || $input === null) {
             return $input;
+        } else {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
+            return gettype($input);
         }
     }
 
@@ -44,15 +47,8 @@ class Debugger
     {
         $result = [];
         foreach ($input as $key => $item) {
-            if (is_array($item)) {
-                $result[$key] = $this->debugArray($item);
-            } elseif (is_object($item)) {
-                $result[$key] = $this->debugObject($item);
-            } else {
-                $result[$key] = $item;
-            }
+            $result[$key] = $this->debug($item);
         }
-
         return $result;
     }
 

@@ -87,13 +87,24 @@ class Filter
     }
 
     /**
-     * Process mixed input
+     * Check if variable is bool, int, float, null
+     *
+     * @param mixed $var
+     * @return bool
+     */
+    protected function isSafeType($var): bool
+    {
+        return !is_string($var) && (is_scalar($var) || $var === null);
+    }
+
+    /**
+     * Process mixed input. Return empty array if input is filtered
      *
      * @param mixed $input
      * @param string $search
      * @param string $replace
      *
-     * @return mixed
+     * @return mixed Possible returns include: SafeDataObject|AbstractEmailTemplate|array
      */
     public function process($input, string $search, string $replace)
     {
@@ -103,8 +114,10 @@ class Filter
             return $this->processObject($input, $search, $replace);
         } elseif (is_string($input)) {
             return $this->processString($input, $search, $replace);
-        } else {
+        } elseif ($this->isSafeType($input)) {
             return $input;
+        } else {
+            return [];
         }
     }
 
@@ -121,19 +134,10 @@ class Filter
     {
         $result = [];
         foreach ($input as $key => $item) {
-            if (is_string($item)) {
-                $result[$key] = $this->processString($item, $search, $replace);
-            } elseif (is_array($item)) {
-                $result[$key] = $this->processArray($item, $search, $replace);
-            } elseif (is_object($item)) {
-                $result[$key] = $this->processObject($item, $search, $replace);
-            } else {
-                $result[$key] = $item;
-            }
-
-            // Remove empty array
-            if ($result[$key] === []) {
-                unset($result[$key]);
+            $processed = $this->process($item, $search, $replace);
+            // Don't add empty array
+            if ($processed !== []) {
+                $result[$key] = $processed;
             }
         }
 
@@ -202,7 +206,7 @@ class Filter
         }
 
         $data = array_filter($data, function ($value) {
-            return is_scalar($value);
+            return is_scalar($value) || $value === null;
         });
 
         if (class_exists(\Magento\Framework\Filter\VariableResolver\LegacyResolver::class)
