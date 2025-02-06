@@ -16,6 +16,11 @@ use Magento\Email\Model\AbstractTemplate as AbstractEmailTemplate;
 class Debugger
 {
     /**
+     * @var int
+     */
+    protected $maxDataObjectDebugDepth = 2;
+
+    /**
      * Debug mixed input
      *
      * @param mixed $input
@@ -77,12 +82,38 @@ class Debugger
      */
     protected function debugDataObject(DataObject $input): array
     {
-        $data = $this->debugArray($input->getData());
+        return $this->_debugDataObject($input);
+    }
+
+    /**
+     * Debug DataObject
+     *
+     * @param DataObject $dataObj
+     * @param int $currDepth
+     * @return array
+     */
+    protected function _debugDataObject(DataObject $dataObj, int $currDepth = 1): array
+    {
+        $data = $dataObj->getData();
+        $result = [];
+        foreach ($data as $key => $item) {
+            if ($item instanceof DataObject) {
+                if ($currDepth < $this->maxDataObjectDebugDepth) {
+                    $result[$key] = $this->_debugDataObject($item, $currDepth + 1);
+                } else {
+                    $result[$key] = get_class($item);
+                }
+            } else {
+                $result[$key] = $this->debug($item);
+            }
+        }
+
         $typeKey = '__TYPE__DataObject__';
-        if ($input instanceof AbstractEmailTemplate) {
+        if ($dataObj instanceof AbstractEmailTemplate) {
             $typeKey = '__TYPE__AbstractTemplate__';
         }
-        $data[$typeKey] = get_class($input);
-        return $data;
+        $data[$typeKey] = get_class($dataObj);
+
+        return $result;
     }
 }

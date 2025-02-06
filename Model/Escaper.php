@@ -81,7 +81,7 @@ class Escaper
      * Escape array input
      *
      * @param array $input
-     * @param bool $strictMode For <= 2.4.3-p1. Needs to be the same with template filter
+     * @param bool $strictMode
      * @return array
      */
     public function escape(array $input, bool $strictMode = true): array

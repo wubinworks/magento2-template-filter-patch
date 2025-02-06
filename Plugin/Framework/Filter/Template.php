@@ -15,7 +15,7 @@ use Wubinworks\TemplateFilterPatch\Model\Escaper;
  * Patch for CVE-2022-24086
  * @link https://nvd.nist.gov/vuln/detail/cve-2022-24086
  *
- * Fixes the RCE caused by malicious user data
+ * Fixes the RCE caused by malicious user data(user input)
  * Fixes an Unintended User Data Parsing Bug
  * @link https://github.com/magento/magento2/issues/39353
  *
@@ -29,9 +29,9 @@ use Wubinworks\TemplateFilterPatch\Model\Escaper;
 class Template
 {
     /**
-     * @var int
+     * @var array
      */
-    protected $filterDepth = 0;
+    protected $filterInfo;
 
     /**
      * @var Escaper
@@ -47,11 +47,6 @@ class Template
      * @var bool
      */
     protected $debug;
-
-    /**
-     * @var array
-     */
-    protected $variables;
 
     /**
      * Constructor
@@ -83,7 +78,8 @@ class Template
         \Magento\Framework\Filter\Template $subject,
         array $variables
     ): ?array {
-        $this->variables = $variables;
+        $filterKey = spl_object_hash($subject);
+        $this->filterInfo[$filterKey]['variables'] = $variables;
         return null;
     }
 
@@ -100,20 +96,24 @@ class Template
         callable $proceed,
         $value
     ) {
-        $this->debugLog('Before', $this->variables);
+        $filterKey = spl_object_hash($subject);
+        $this->debugLog('Before', $this->filterInfo[$filterKey]['variables']);
         $escapedVariables = $this->templateFilterEscaper->escape(
-            $this->variables,
+            $this->filterInfo[$filterKey]['variables'],
             $this->isStrictMode($subject)
         );
         $this->debugLog('After', $escapedVariables);
         $subject->setVariables($escapedVariables);
 
-        $this->filterDepth++;
+        if (!isset($this->filterInfo[$filterKey]['depth'])) {
+            $this->filterInfo[$filterKey]['depth'] = 0;
+        }
+        $this->filterInfo[$filterKey]['depth']++;
 
         $result = $proceed($value);
 
-        $this->filterDepth--;
-        if ($this->filterDepth === 0) {
+        $this->filterInfo[$filterKey]['depth']--;
+        if ($this->filterInfo[$filterKey]['depth'] === 0) {
             $result = $this->templateFilterEscaper->unescape($result);
         }
 
@@ -138,7 +138,7 @@ class Template
     }
 
     /**
-     * Determine the strict mode for Magento version <= 2.4.3-p1
+     * Determine the strict mode
      *
      * @param \Magento\Framework\Filter\Template $filter
      * @return bool

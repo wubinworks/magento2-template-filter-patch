@@ -10,6 +10,7 @@ namespace Wubinworks\TemplateFilterPatch\Model\Escaper;
 use Magento\Framework\DataObject;
 use Magento\Email\Model\AbstractTemplate as AbstractEmailTemplate;
 use Wubinworks\TemplateFilterPatch\Model\Utils\SafeStringReplace;
+use Wubinworks\TemplateFilterPatch\Model\Utils\DataObjectDeserializer;
 use Wubinworks\TemplateFilterPatch\Model\SafeDataObject;
 use Wubinworks\TemplateFilterPatch\Model\SafeDataObjectFactory;
 use Wubinworks\TemplateFilterPatch\Model\SafeEmailTemplate;
@@ -33,6 +34,11 @@ class Filter
     protected $safeStringReplace;
 
     /**
+     * @var DataObjectDeserializer
+     */
+    protected $dataObjectDeserializer;
+
+    /**
      * @var bool
      */
     protected $strictMode = true;
@@ -51,17 +57,20 @@ class Filter
      * Constructor
      *
      * @param SafeStringReplace $safeStringReplace
+     * @param DataObjectDeserializer $dataObjectDeserializer
      * @param SafeDataObjectFactory $safeDataObjectFactory
      * @param SafeEmailTemplateFactory $safeEmailTemplateFactory
      * @param string[] $prohibitedTypes
      */
     public function __construct(
         SafeStringReplace $safeStringReplace,
+        DataObjectDeserializer $dataObjectDeserializer,
         SafeDataObjectFactory $safeDataObjectFactory,
         SafeEmailTemplateFactory $safeEmailTemplateFactory,
         array $prohibitedTypes = []
     ) {
         $this->safeStringReplace = $safeStringReplace;
+        $this->dataObjectDeserializer = $dataObjectDeserializer;
         $this->safeDataObjectFactory = $safeDataObjectFactory;
         $this->safeEmailTemplateFactory = $safeEmailTemplateFactory;
         $this->prohibitedTypes = $prohibitedTypes;
@@ -182,40 +191,36 @@ class Filter
      */
     protected function processDataObject(DataObject $input, string $search, string $replace): SafeDataObject
     {
-        $data = $this->processArray($input->getData(), $search, $replace);
+        $data = $this->dataObjectDeserializer->deserialize($input, 2);
+        $data = $this->processArray($data, $search, $replace);
         return $this->safeDataObjectFactory->create(['data' => $data]);
     }
 
     /**
-     * Create safe email template
+     * Create safe email template. A wrapper for calling `getUrl` method.
      *
-     * @param DataObject|array $input
+     * @param AbstractEmailTemplate $input
      *
      * @return SafeDataObject|AbstractEmailTemplate
      *
      * @throws \InvalidArgumentException
      */
-    protected function createSafeEmailTemplate($input): DataObject
+    protected function createSafeEmailTemplate(AbstractEmailTemplate $input): DataObject
     {
-        if ($input instanceof DataObject) {
-            $data = $input->getData();
-        } elseif (is_array($input)) {
-            $data = $input;
-        } else {
-            throw new \InvalidArgumentException('$input must be DataObject or array.');
-        }
-
-        $data = array_filter($data, function ($value) {
-            return is_scalar($value) || $value === null;
-        });
+        $data = $this->dataObjectDeserializer->deserialize($input, 1);
 
         if (class_exists(\Magento\Framework\Filter\VariableResolver\LegacyResolver::class)
             && !$this->isStrictMode()) {
-            // <= 2.4.3-p1
-            return $this->safeDataObjectFactory->create(['data' => $data]);
+            // LegacyResolver will be used. Need return DataObject instead of AbstractEmailTemplate
+            return $this->safeDataObjectFactory->create([
+                '_emailTemplate' => $input,
+                'data' => $data
+            ]);
         } else {
-            // Just for getUrl method
-            return $this->safeEmailTemplateFactory->create(['data' => $data]);
+            return $this->safeEmailTemplateFactory->create([
+                '_emailTemplate' => $input,
+                'data' => $data
+            ]);
         }
     }
 
