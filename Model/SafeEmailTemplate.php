@@ -11,30 +11,43 @@ use Magento\Framework\DataObject;
 use Magento\Framework\ObjectManager\NoninterceptableInterface;
 use Magento\Email\Model\AbstractTemplate as AbstractEmailTemplate;
 use Magento\Store\Model\Store;
-use Wubinworks\TemplateFilterPatch\Model\StoreUrl;
+use Magento\Store\Model\StoreManagerInterface;
+use Wubinworks\TemplateFilterPatch\Traits\GetUrlTrait;
 
 /**
  * Safe email template object
+ *
+ * @SuppressWarnings(PHPMD.FinalImplementation)
  */
 // phpcs:ignore Magento2.PHP.FinalImplementation.FoundFinal
 final class SafeEmailTemplate extends AbstractEmailTemplate implements NoninterceptableInterface
 {
+    use GetUrlTrait;
+
     /**
-     * @var StoreUrl
+     * @var StoreManagerInterface
      */
-    protected $storeUrlBuilder;
+    protected $storeManager;
+
+    /**
+     * @var AbstractEmailTemplate
+     */
+    protected $_emailTemplate;
 
     /**
      * Constructor
      *
-     * @param StoreUrl $storeUrlBuilder
+     * @param StoreManagerInterface $storeManager
+     * @param ?AbstractEmailTemplate $_emailTemplate
      * @param array $data
      */
     public function __construct(
-        StoreUrl $storeUrlBuilder,
+        StoreManagerInterface $storeManager,
+        ?AbstractEmailTemplate $_emailTemplate = null,
         array $data = []
     ) {
-        $this->storeUrlBuilder= $storeUrlBuilder;
+        $this->storeManager = $storeManager;
+        $this->_emailTemplate= $_emailTemplate;
         $this->_data = $data;
     }
 
@@ -47,18 +60,4 @@ final class SafeEmailTemplate extends AbstractEmailTemplate implements Noninterc
     {
     }
     // phpcs:enable
-
-    /**
-     * Get URL by store
-     *
-     * @param Store|DataObject|int|string|null $store
-     * @param string $route
-     * @param array $params
-     *
-     * @return string|null
-     */
-    public function getUrl($store, $route = '', $params = []): ?string
-    {
-        return $this->storeUrlBuilder->getUrl($store, $route, $params);
-    }
 }

@@ -6,19 +6,24 @@
 
 ## Background
 
-[CVE-2022-24086, CVE-2022-24087](https://nvd.nist.gov/vuln/detail/cve-2022-24086) was discovered in the beginning of 2022. For Magento 2.4 releases, all versions <= 2.4.3-p1 are affected by this Remote Code Execution(RCE) vulnerability. 2 [official isolated patches](https://helpx.adobe.com/security/products/magento/apsb22-12.html) were released on February 2022.
+[CVE-2022-24086(with CVE-2022-24087)](https://nvd.nist.gov/vuln/detail/cve-2022-24086) was discovered in the beginning of 2022.
 
-However, even in late 2024, we are still receiving consultations regarding this issue and their hacked stores were identified that this vulnerability was exploited. Most observed attacks were performed by inputting a string that contains `template directive`.
+#### Affected Magento Versions
 
-The most typical ways are making use of the checkout process, triggering an email sending with the email containing user controlled fields, etc.
+ - 2.3 series: <=2.3.7-p2
+ - 2.4 series: <=2.4.3-p1
 
-We release this patch due to this widespread attack and some stores still having difficulties to upgrade or apply the 2 official patches.
+Affected stores come with this Remote Code Execution(RCE) vulnerability without workaround. 2 [official isolated patches](https://helpx.adobe.com/security/products/magento/apsb22-12.html) were released on February 2022.
 
-While making this patch as an extension, we keep compatibility in mind. So it should work on all Magento 2.4 versions.
+However, even in late 2024, we are still receiving consultations regarding this issue and their hacked stores were identified that this vulnerability was exploited. Observed attacks were performed by inputting a string that contains `template directive`. Typically by making use of the checkout process, actions that can trigger an email sending with user controllable fields, etc.
+
+We make this patch due to this widespread attack and some stores still having difficulties to upgrade to unaffected versions or apply the 2 official patches.
+
+While making this patch as an extension, we keep compatibility in mind. It is mainly tested on Magento 2.4 series.
 
 ## Features
 
- - Fixed the RCE caused by malicious user data
+ - Fixed the RCE caused by malicious user data(user input)
  - Fixed an [Unintended User Data Parsing Bug](https://github.com/magento/magento2/issues/39353)
  - Maintains compatibility as much as possible for old templates(see [Template Compatibility Section](#template-compatibility) below)
 
@@ -60,11 +65,11 @@ Still has an unfixed bug([#39353](https://github.com/magento/magento2/issues/393
 
 Use "deep template variable escaping" before the template filtering process. `LegacyResolver` will only receive escaped user data and hence can be kept.
 
-# Requirements
+## Requirements
 
-**Magento 2.4**
+Magento 2.3 or 2.4
 
-# Installation
+## Installation
 
 **`composer require wubinworks/module-template-filter-patch`**
 
@@ -73,4 +78,10 @@ Use "deep template variable escaping" before the template filtering process. `Le
 If you like this extension or this extension helped you, please ★star☆ this repository.
 
 You may also like:  
-[Magento 2 patch for CVE-2024-34102(aka CosmicSting)](https://github.com/wubinworks/magento2-cosmic-sting-patch)
+[Magento 2 patch for CVE-2024-34102(aka Cosmic Sting)](https://github.com/wubinworks/magento2-cosmic-sting-patch)  
+[Magento 2 Enhanced XML Security](https://github.com/wubinworks/magento2-enhanced-xml-security)  
+[Magento 2 Encryption Key Manager CLI](https://github.com/wubinworks/magento2-encryption-key-manager-cli)  
+[Magento 2 JWT Authentication Patch](https://github.com/wubinworks/magento2-jwt-auth-patch)  
+  
+[Magento 2 Disable Customer Change Email Extension](https://github.com/wubinworks/disable-change-email)  
+[Magento 2 Disable Customer Extension](https://github.com/wubinworks/magento2-disable-customer)

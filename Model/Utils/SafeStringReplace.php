@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Wubinworks\TemplateFilterPatch\Model\Utils;
 
 /**
- * Safe str_replace
+ * Safe `str_replace`
  */
 class SafeStringReplace
 {
@@ -48,6 +48,11 @@ class SafeStringReplace
      */
     public function strReplace(string $search, string $replace, string $subject, int $maxReplacementLimit = 0): string
     {
+        // `str_replace` behavior
+        if ($search === '') {
+            return $subject;
+        }
+
         $subject = $this->_splitStringAt($subject, $search, $maxReplacementLimit);
         $sizeIncrement = $this->getStringBytes($replace) - $this->getStringBytes($search);
         $count = mb_substr_count($subject[0], $search);
